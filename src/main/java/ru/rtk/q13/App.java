@@ -65,11 +65,14 @@ public class App
             System.out.println("Working CRUD");
 
             // Добавление нового товара
-           // addNewProduct("Гуава", 120.00, 100, "Фрукты");
-           // addNewProduct("Огурец", 70.00, 100, "Овощи");
+           addNewProduct("Гуава", 120.00, 100, "Фрукты");
+           addNewProduct("Огурец", 70.00, 100, "Овощи");
             
             // Добавление нового покупателя
-           // addNewCustomer("Иван","Иванов","999-277-9871","ivan@mail.ru");
+           addNewCustomer("Иван","Иванов","999-277-9871","ivan@mail.ru");
+
+            // Топ-3 самых популярных товара
+            top3();
 
             // прайс лист
             priceList();
@@ -94,7 +97,36 @@ public class App
             connection.setAutoCommit(true);
         }
     }
+
+
 // показать прайс лист и остатки товаров на складе
+    private void top3() throws SQLException {
+        String strSQL = """
+            select  p.prd_name, sum(o2.ord_quantity) as sum 
+            from product p
+            join order2 o2 on o2.prd_id = p.prd_id 
+            group by p.prd_name
+            order by sum desc
+            limit 3;
+        """;
+            System.out.println("TOP3 products ");
+       try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(strSQL)) {
+            System.out.println("Наименование      Продано");
+            while (rs.next()) {
+                String name = rs.getString("prd_name");
+                Integer sum = rs.getInt("sum");
+                System.out.printf("%-18s %-4d",
+                        name, sum);
+                System.out.println();
+            } 
+        }
+    }
+
+    /**
+     *  Журнал заказов
+     * @throws SQLException
+     */
     private void orderList() throws SQLException {
         String strSQL = """
             SELECT o2.ord_id, c.cst_firstname, c.cst_lastname, p.prd_name, p.prd_price, o2.ord_quantity ,p.prd_price*o2.ord_quantity as sum, os.ost_name, p.prd_quantity, o2.ord_date 
